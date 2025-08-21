@@ -3,10 +3,10 @@ import requests
 import time
 from random import randint
 from bs4 import BeautifulSoup
-import json # 【新增】导入 json 库用于处理可能的错误
+import json
 
 # ------------------ 配置 ------------------
-NUM_REPEATS = 10 # 和你的日志保持一致
+NUM_REPEATS = 10 
 POST_ID = "7561"
 
 # 账号信息 (自动从 GitHub Secrets 读取)
@@ -38,19 +38,23 @@ def post_and_delete_comment(session, post_id):
     """为一个会话执行一次发表并删除评论的操作"""
     try:
         print("  > 正在发表评论...")
-        comment_payload = {"content": COMMENT_TEXT, "postId": post_id}
+        comment_payload = {
+            "content": COMMENT_TEXT,
+            "postId": post_id
+        }
         
-        resp_post = session.post(COMMENT_ADD_URL, json=comment_payload)
+        # 【关键修正】使用 data= 发送表单数据，而不是 json=
+        resp_post = session.post(COMMENT_ADD_URL, data=comment_payload)
+        
         resp_post.raise_for_status()
 
-        # 【重要修改】在这里加入调试代码来捕获错误
         try:
             response_data = resp_post.json()
         except json.JSONDecodeError:
             print("  > [调试信息] 服务器返回的不是有效的JSON。")
             print(f"  > [调试信息] 状态码: {resp_post.status_code}")
-            print(f"  > [调试信息] 响应内容: {resp_post.text[:500]}") # 打印前500个字符
-            return False # 提前返回，不再继续执行
+            print(f"  > [调试信息] 响应内容: {resp_post.text[:500]}")
+            return False
 
         comment_id = response_data.get("data", {}).get("id")
         if not comment_id:
@@ -72,13 +76,12 @@ def post_and_delete_comment(session, post_id):
             print(f"  > 评论删除失败: {resp_delete.text}")
             return False
             
-    # 【修改】将通用的 Exception 捕获放在最外层
     except Exception as e:
         print(f"  > 操作出现异常: {e}")
         return False
 
-# (get_account_status 和 main 函数保持不变)
 def get_account_status(session):
+    """获取并返回当前账号的币数"""
     try:
         print("  > 正在获取当前币数...")
         resp = session.get(STATUS_URL)
