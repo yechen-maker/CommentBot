@@ -76,7 +76,7 @@ def post_and_delete_comment(session, post_id):
             return False
 
         print(f"  > 评论发表成功, 获得 Comment ID: {comment_id}")
-        # time.sleep(randint(1, 3))
+        time.sleep(randint(1, 3))
 
         delete_url = COMMENT_DELETE_URL_TEMPLATE.format(comment_id)
         print(f"  > 正在删除评论 (ID: {comment_id})...")
@@ -151,8 +151,8 @@ def main():
         for i in range(NUM_REPEATS):
             print(f"  第 {i + 1}/{NUM_REPEATS} 次操作...")
             post_and_delete_comment(session, POST_ID)
-            # if i < NUM_REPEATS - 1:
-            #     time.sleep(randint(2, 3))
+            if i < NUM_REPEATS - 1:
+                time.sleep(randint(2, 3))
                 
         # 获取最终币数用于摘要
         coin_balance = get_account_status(session)
