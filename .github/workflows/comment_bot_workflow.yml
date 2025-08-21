@@ -31,11 +31,11 @@ jobs:
           python-version: '3.10'
 
       # 第三步：安装脚本所需的依赖库
-      # 我们的脚本只需要 'requests' 库
       - name: Install dependencies
         run: |
           python -m pip install --upgrade pip
-          pip install requests
+          # 【重要修改】在这里添加 beautifulsoup4
+          pip install requests beautifulsoup4
 
       # 第四步：运行评论脚本
       # 这是核心步骤，它会执行你的 Python 文件
