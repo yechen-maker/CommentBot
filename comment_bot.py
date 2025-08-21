@@ -6,7 +6,7 @@ from bs4 import BeautifulSoup
 import json
 
 # ------------------ 配置 ------------------
-NUM_REPEATS = 200
+NUM_REPEATS = 100
 POST_ID = "7561"
 
 # 账号信息 (自动从 GitHub Secrets 读取)
@@ -52,7 +52,7 @@ def post_and_delete_comment(session, post_id):
             return False
 
         print(f"  > 评论发表成功, 获得 Comment ID: {comment_id}")
-        time.sleep(randint(2, 5))
+        # time.sleep(randint(2, 5))
 
         delete_url = COMMENT_DELETE_URL_TEMPLATE.format(comment_id)
         print(f"  > 正在删除评论 (ID: {comment_id})...")
