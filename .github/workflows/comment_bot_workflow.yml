@@ -4,9 +4,9 @@ name: Navix Auto Comment Bot
 on:
   # 1. 定时触发
   schedule:
-    # 【重要修改】cron 表达式使用 UTC 时间。
+
     # 北京时间 (UTC+8) 的 01:00 AM，对应 UTC 时间是前一天的 17:00 (下午5点)。
-    - cron: '0 17 * * *'
+    - cron: '0 22 * * *'
   
   # 2. 手动触发
   workflow_dispatch:
