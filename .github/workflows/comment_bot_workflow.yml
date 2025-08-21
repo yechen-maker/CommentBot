@@ -48,9 +48,9 @@ jobs:
           NAVIX_EMAIL: ${{ secrets.NAVIX_EMAIL }}
           NAVIX_PASSWORD: ${{ secrets.NAVIX_PASSWORD }}
           
-          # 第二个账号
-          NAVIX_EMAIL2: ${{ secrets.NAVIX_EMAIL2 }}
-          NAVIX_PASSWORD2: ${{ secrets.NAVIX_PASSWORD2 }}
+          # # 第二个账号
+          # NAVIX_EMAIL2: ${{ secrets.NAVIX_EMAIL2 }}
+          # NAVIX_PASSWORD2: ${{ secrets.NAVIX_PASSWORD2 }}
           
           # 如果未来添加了 NAVIX_EMAIL3, NAVIX_PASSWORD3 等 Secrets, 在这里继续添加即可
           # NAVIX_EMAIL3: ${{ secrets.NAVIX_EMAIL3 }}
