@@ -2,10 +2,11 @@ import os
 import requests
 import time
 from random import randint
-from bs4 import BeautifulSoup  # 【新增】需要导入 BeautifulSoup
+from bs4 import BeautifulSoup
+import json # 【新增】导入 json 库用于处理可能的错误
 
 # ------------------ 配置 ------------------
-NUM_REPEATS = 10
+NUM_REPEATS = 10 # 和你的日志保持一致
 POST_ID = "7561"
 
 # 账号信息 (自动从 GitHub Secrets 读取)
@@ -28,7 +29,7 @@ while True:
 LOGIN_URL = "https://navix.site/login"
 COMMENT_ADD_URL = "https://navix.site/comment/add"
 COMMENT_DELETE_URL_TEMPLATE = "https://navix.site/comment/delete/{}"
-STATUS_URL = "https://navix.site/sign_in"  # 【新增】获取币数和状态的页面URL
+STATUS_URL = "https://navix.site/sign_in"
 COMMENT_TEXT = "学习一下"
 
 # ------------------ 核心功能函数 ------------------
@@ -38,9 +39,18 @@ def post_and_delete_comment(session, post_id):
     try:
         print("  > 正在发表评论...")
         comment_payload = {"content": COMMENT_TEXT, "postId": post_id}
+        
         resp_post = session.post(COMMENT_ADD_URL, json=comment_payload)
         resp_post.raise_for_status()
-        response_data = resp_post.json()
+
+        # 【重要修改】在这里加入调试代码来捕获错误
+        try:
+            response_data = resp_post.json()
+        except json.JSONDecodeError:
+            print("  > [调试信息] 服务器返回的不是有效的JSON。")
+            print(f"  > [调试信息] 状态码: {resp_post.status_code}")
+            print(f"  > [调试信息] 响应内容: {resp_post.text[:500]}") # 打印前500个字符
+            return False # 提前返回，不再继续执行
 
         comment_id = response_data.get("data", {}).get("id")
         if not comment_id:
@@ -61,48 +71,38 @@ def post_and_delete_comment(session, post_id):
         else:
             print(f"  > 评论删除失败: {resp_delete.text}")
             return False
+            
+    # 【修改】将通用的 Exception 捕获放在最外层
     except Exception as e:
         print(f"  > 操作出现异常: {e}")
         return False
 
-# 【新增】获取账号当前币数的函数
+# (get_account_status 和 main 函数保持不变)
 def get_account_status(session):
-    """获取并返回当前账号的币数"""
     try:
         print("  > 正在获取当前币数...")
         resp = session.get(STATUS_URL)
         resp.raise_for_status()
         soup = BeautifulSoup(resp.text, "html.parser")
-        
-        # 根据之前的签到脚本，币数元素的id是'expValue'
         exp_elem = soup.find(id="expValue")
-        
         if exp_elem:
-            coin_balance = exp_elem.text.strip()
-            return coin_balance
+            return exp_elem.text.strip()
         else:
             return "未能找到币数信息"
     except Exception as e:
         print(f"  > 获取币数时发生错误: {e}")
         return "获取失败"
 
-
-# ------------------ 主执行逻辑 ------------------
-
 def main():
     if not ACCOUNTS:
         print("未找到任何账号配置，请检查仓库的 Secrets 设置。")
         return
-
     for account in ACCOUNTS:
         email = account["email"]
         password = account["password"]
-        
         print(f"\n--- 开始处理账号: {email} ---")
-        
         session = requests.Session()
         login_payload = {"email": email, "password": password, "rememberMe": False}
-
         try:
             resp = session.post(LOGIN_URL, json=login_payload)
             if not (resp.status_code == 200 and resp.json().get("success")):
@@ -112,7 +112,6 @@ def main():
         except Exception as e:
             print(f"登录异常: {e}")
             continue
-
         success_count = 0
         for i in range(NUM_REPEATS):
             print(f"  第 {i + 1}/{NUM_REPEATS} 次操作...")
@@ -120,11 +119,7 @@ def main():
                 success_count += 1
             if i < NUM_REPEATS - 1:
                 time.sleep(randint(5, 10))
-        
-        # 【修改】在所有操作结束后，调用新函数获取币数
         coin_balance = get_account_status(session)
-        
-        # 【修改】在最终的输出中加入币数信息
         print(f"--- 账号: {email} 处理完毕，成功 {success_count}/{NUM_REPEATS} 次。当前币数: {coin_balance} ---")
 
 if __name__ == "__main__":
