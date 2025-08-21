@@ -4,13 +4,13 @@ import time
 from random import randint
 from bs4 import BeautifulSoup
 import json
-import smtplib  # 【新增】邮件库
-from email.mime.text import MIMEText  # 【新增】邮件库
-from email.header import Header  # 【新增】邮件库
-from datetime import datetime, timezone, timedelta # 【新增】时间库
+import smtplib
+from email.mime.text import MIMEText
+from email.header import Header
+from datetime import datetime, timezone, timedelta
 
 # ------------------ 配置 ------------------
-NUM_REPEATS = 5
+NUM_REPEATS = 10
 POST_ID = "7561"
 
 # 账号信息 (自动从 GitHub Secrets 读取)
@@ -36,14 +36,13 @@ COMMENT_DELETE_URL_TEMPLATE = "https://navix.site/comment/delete/{}"
 STATUS_URL = "https://navix.site/sign_in"
 COMMENT_TEXT = "学习一下"
 
-# 【新增】邮件发送配置
+# 邮件发送配置
 EMAIL_SENDER = os.environ.get("EMAIL_SENDER")
 EMAIL_PASSWORD = os.environ.get("EMAIL_PASSWORD")
 EMAIL_RECEIVER = os.environ.get("EMAIL_RECEIVER")
 
 # ------------------ 功能函数 ------------------
 
-# 【新增】邮件发送函数
 def send_email(subject, body):
     if not all([EMAIL_SENDER, EMAIL_PASSWORD, EMAIL_RECEIVER]):
         print("邮件配置不完整，跳过发送邮件。")
@@ -55,7 +54,6 @@ def send_email(subject, body):
     msg['Subject'] = Header(subject, 'utf-8')
 
     try:
-        # 假设使用 Gmail 发送
         with smtplib.SMTP_SSL('smtp.gmail.com', 465) as server:
             server.login(EMAIL_SENDER, EMAIL_PASSWORD)
             server.sendmail(EMAIL_SENDER, [EMAIL_RECEIVER], msg.as_string())
@@ -63,14 +61,10 @@ def send_email(subject, body):
     except Exception as e:
         print(f"日志邮件发送失败: {e}")
 
-def post_and_delete_comment(session, post_id, log_list):
-    """为一个会话执行一次发表并删除评论的操作，并将日志存入列表"""
-    def log_message(msg):
-        print(msg)
-        log_list.append(msg)
-
+def post_and_delete_comment(session, post_id):
+    """为一个会话执行一次发表并删除评论的操作"""
     try:
-        log_message("  > 正在发表评论...")
+        print("  > 正在发表评论...")
         comment_payload = {"content": COMMENT_TEXT, "postId": post_id}
         resp_post = session.post(COMMENT_ADD_URL, data=comment_payload)
         resp_post.raise_for_status()
@@ -78,36 +72,32 @@ def post_and_delete_comment(session, post_id, log_list):
 
         comment_id = response_data.get("comment", {}).get("id")
         if not comment_id:
-            log_message(f"  > 发表评论后未能获取到 commentId，服务器响应: {response_data}")
+            print(f"  > 发表评论后未能获取到 commentId，服务器响应: {response_data}")
             return False
 
-        log_message(f"  > 评论发表成功, 获得 Comment ID: {comment_id}")
-        # time.sleep(randint(2, 5))
+        print(f"  > 评论发表成功, 获得 Comment ID: {comment_id}")
+        time.sleep(randint(2, 5))
 
         delete_url = COMMENT_DELETE_URL_TEMPLATE.format(comment_id)
-        log_message(f"  > 正在删除评论 (ID: {comment_id})...")
+        print(f"  > 正在删除评论 (ID: {comment_id})...")
         resp_delete = session.post(delete_url)
         resp_delete.raise_for_status()
 
         if resp_delete.json().get("success"):
-            log_message("  > 评论删除成功。")
+            print("  > 评论删除成功。")
             return True
         else:
-            log_message(f"  > 评论删除失败: {resp_delete.text}")
+            print(f"  > 评论删除失败: {resp_delete.text}")
             return False
             
     except Exception as e:
-        log_message(f"  > 操作出现异常: {e}")
+        print(f"  > 操作出现异常: {e}")
         return False
 
-def get_account_status(session, log_list):
+def get_account_status(session):
     """获取并返回当前账号的币数"""
-    def log_message(msg):
-        print(msg)
-        # 状态获取日志可以不加入邮件
-    
     try:
-        log_message("  > 正在获取当前币数...")
+        print("  > 正在获取当前币数...")
         resp = session.get(STATUS_URL)
         resp.raise_for_status()
         soup = BeautifulSoup(resp.text, "html.parser")
@@ -117,35 +107,30 @@ def get_account_status(session, log_list):
         else:
             return "未能找到币数信息"
     except Exception as e:
-        log_message(f"  > 获取币数时发生错误: {e}")
+        print(f"  > 获取币数时发生错误: {e}")
         return "获取失败"
 
 # ------------------ 主执行逻辑 ------------------
 
 def main():
-    # 【修改】创建一个列表来收集所有日志
-    full_log_list = []
+    # 【修改】创建一个专门用于邮件内容的摘要列表
+    email_summary_list = []
     
-    # 获取北京时间
     beijing_tz = timezone(timedelta(hours=8))
     beijing_time_str = datetime.now(beijing_tz).strftime('%Y-%m-%d %H:%M:%S')
     
-    log_header = f"任务开始时间: {beijing_time_str} (北京时间)"
-    print(log_header)
-    full_log_list.append(log_header)
+    print(f"任务开始时间: {beijing_time_str} (北京时间)")
+    email_summary_list.append(f"报告生成时间: {beijing_time_str} (北京时间)\n")
 
     if not ACCOUNTS:
-        msg = "未找到任何账号配置，请检查仓库的 Secrets 设置。"
-        print(msg)
-        full_log_list.append(msg)
+        print("未找到任何账号配置。")
+        email_summary_list.append("错误：未配置任何账号信息。")
     
     for account in ACCOUNTS:
         email = account["email"]
         password = account["password"]
         
-        account_header = f"\n--- 开始处理账号: {email} ---"
-        print(account_header)
-        full_log_list.append(account_header)
+        print(f"\n--- 开始处理账号: {email} ---")
         
         session = requests.Session()
         login_payload = {"email": email, "password": password, "rememberMe": False}
@@ -153,41 +138,33 @@ def main():
         try:
             resp = session.post(LOGIN_URL, json=login_payload)
             if not (resp.status_code == 200 and resp.json().get("success")):
-                msg = f"登录失败: {resp.text}"
-                print(msg)
-                full_log_list.append(msg)
-                continue
-            
-            msg = "登录成功。"
-            print(msg)
-            full_log_list.append(msg)
-
+                print(f"登录失败: {resp.text}")
+                email_summary_list.append(f"账号: {email} - 状态: 登录失败")
+                continue # 处理下一个账号
+            print("登录成功。")
         except Exception as e:
-            msg = f"登录异常: {e}"
-            print(msg)
-            full_log_list.append(msg)
+            print(f"登录异常: {e}")
+            email_summary_list.append(f"账号: {email} - 状态: 登录异常")
             continue
             
-        success_count = 0
+        # 执行评论循环，这部分的详细日志只打印在控制台
         for i in range(NUM_REPEATS):
-            op_header = f"  第 {i + 1}/{NUM_REPEATS} 次操作..."
-            print(op_header)
-            full_log_list.append(op_header)
-            
-            if post_and_delete_comment(session, POST_ID, full_log_list):
-                success_count += 1
+            print(f"  第 {i + 1}/{NUM_REPEATS} 次操作...")
+            post_and_delete_comment(session, POST_ID)
             if i < NUM_REPEATS - 1:
                 time.sleep(randint(5, 10))
                 
-        coin_balance = get_account_status(session, full_log_list)
+        # 获取最终币数用于摘要
+        coin_balance = get_account_status(session)
+        summary_line = f"账号: {email} - 当前币数: {coin_balance}"
         
-        summary_msg = f"--- 账号: {email} 处理完毕，成功 {success_count}/{NUM_REPEATS} 次。当前币数: {coin_balance} ---"
-        print(summary_msg)
-        full_log_list.append(summary_msg)
+        # 打印最终总结并添加到邮件摘要列表
+        print(f"--- 账号: {email} 处理完毕。{summary_line} ---")
+        email_summary_list.append(summary_line)
 
-    # 【修改】在所有任务结束后，发送包含日志的邮件
-    final_log_str = "\n".join(full_log_list)
-    send_email("每日自动评论任务报告", final_log_str)
+    # 【修改】使用摘要列表生成邮件内容并发送
+    email_body = "\n".join(email_summary_list)
+    send_email("每日币数状态报告", email_body)
 
 if __name__ == "__main__":
     main()
