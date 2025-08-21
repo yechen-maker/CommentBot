@@ -6,7 +6,7 @@ from bs4 import BeautifulSoup
 import json
 
 # ------------------ 配置 ------------------
-NUM_REPEATS = 10 
+NUM_REPEATS = 5 
 POST_ID = "7561"
 
 # 账号信息 (自动从 GitHub Secrets 读取)
@@ -38,26 +38,16 @@ def post_and_delete_comment(session, post_id):
     """为一个会话执行一次发表并删除评论的操作"""
     try:
         print("  > 正在发表评论...")
-        comment_payload = {
-            "content": COMMENT_TEXT,
-            "postId": post_id
-        }
-        
-        # 【关键修正】使用 data= 发送表单数据，而不是 json=
+        comment_payload = {"content": COMMENT_TEXT, "postId": post_id}
         resp_post = session.post(COMMENT_ADD_URL, data=comment_payload)
-        
         resp_post.raise_for_status()
+        response_data = resp_post.json()
 
-        try:
-            response_data = resp_post.json()
-        except json.JSONDecodeError:
-            print("  > [调试信息] 服务器返回的不是有效的JSON。")
-            print(f"  > [调试信息] 状态码: {resp_post.status_code}")
-            print(f"  > [调试信息] 响应内容: {resp_post.text[:500]}")
-            return False
-
-        comment_id = response_data.get("data", {}).get("id")
+        # 【最终修正】根据你的日志，从正确的路径 'comment' -> 'id' 获取 comment_id
+        comment_id = response_data.get("comment", {}).get("id")
+        
         if not comment_id:
+            # 这段代码现在应该不会被执行了，但作为保险措施保留
             print(f"  > 发表评论后未能获取到 commentId，服务器响应: {response_data}")
             return False
 
@@ -65,7 +55,7 @@ def post_and_delete_comment(session, post_id):
         time.sleep(randint(2, 5))
 
         delete_url = COMMENT_DELETE_URL_TEMPLATE.format(comment_id)
-        print(f"  > 正在删除评论 (URL: {delete_url})...")
+        print(f"  > 正在删除评论 (ID: {comment_id})...")
         resp_delete = session.post(delete_url)
         resp_delete.raise_for_status()
 
