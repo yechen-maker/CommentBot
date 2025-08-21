@@ -6,7 +6,7 @@ from bs4 import BeautifulSoup
 import json
 
 # ------------------ 配置 ------------------
-NUM_REPEATS = 100
+NUM_REPEATS = 50
 POST_ID = "7561"
 
 # 账号信息 (自动从 GitHub Secrets 读取)
