@@ -5,7 +5,7 @@ from random import randint
 from bs4 import BeautifulSoup  # 【新增】需要导入 BeautifulSoup
 
 # ------------------ 配置 ------------------
-NUM_REPEATS = 5
+NUM_REPEATS = 10
 POST_ID = "7561"
 
 # 账号信息 (自动从 GitHub Secrets 读取)
