@@ -10,7 +10,7 @@ from email.header import Header
 from datetime import datetime, timezone, timedelta
 
 # ------------------ 配置 ------------------
-NUM_REPEATS = 500
+NUM_REPEATS = 5
 POST_ID = ""
 
 # 账号信息 (自动从 GitHub Secrets 读取)
