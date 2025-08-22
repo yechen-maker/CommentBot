@@ -11,7 +11,7 @@ from datetime import datetime, timezone, timedelta
 
 # ------------------ 配置 ------------------
 NUM_REPEATS = 5
-POST_ID = ""
+POST_ID = "9081"
 
 # 账号信息 (自动从 GitHub Secrets 读取)
 ACCOUNTS = []
