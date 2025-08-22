@@ -152,7 +152,7 @@ def main():
             print(f"  第 {i + 1}/{NUM_REPEATS} 次操作...")
             post_and_delete_comment(session, POST_ID)
             # if i < NUM_REPEATS - 1:
-            #     time.sleep(randint(2, 3))
+            #     time.sleep(randint(1, 3))
                 
         # 获取最终币数用于摘要
         coin_balance = get_account_status(session)
