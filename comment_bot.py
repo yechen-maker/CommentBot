@@ -10,7 +10,7 @@ from email.header import Header
 from datetime import datetime, timezone, timedelta
 
 # ------------------ 配置 ------------------
-NUM_REPEATS = 3
+NUM_REPEATS = 1
 POST_ID = "9081"
 
 # 账号信息 (自动从 GitHub Secrets 读取)
@@ -78,17 +78,17 @@ def post_and_delete_comment(session, post_id):
         print(f"  > 评论发表成功, 获得 Comment ID: {comment_id}")
         # time.sleep(randint(1, 3))
 
-        delete_url = COMMENT_DELETE_URL_TEMPLATE.format(comment_id)
-        print(f"  > 正在删除评论 (ID: {comment_id})...")
-        resp_delete = session.post(delete_url)
-        resp_delete.raise_for_status()
+        # delete_url = COMMENT_DELETE_URL_TEMPLATE.format(comment_id)
+        # print(f"  > 正在删除评论 (ID: {comment_id})...")
+        # resp_delete = session.post(delete_url)
+        # resp_delete.raise_for_status()
 
-        if resp_delete.json().get("success"):
-            print("  > 评论删除成功。")
-            return True
-        else:
-            print(f"  > 评论删除失败: {resp_delete.text}")
-            return False
+        # if resp_delete.json().get("success"):
+        #     print("  > 评论删除成功。")
+        #     return True
+        # else:
+        #     print(f"  > 评论删除失败: {resp_delete.text}")
+        #     return False
             
     except Exception as e:
         print(f"  > 操作出现异常: {e}")
