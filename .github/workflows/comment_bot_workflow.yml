@@ -37,6 +37,10 @@ jobs:
           # # 第二个账号 (如果需要启用，请取消下面的注释)
           # NAVIX_EMAIL2: ${{ secrets.NAVIX_EMAIL2 }}
           # NAVIX_PASSWORD2: ${{ secrets.NAVIX_PASSWORD2 }}
+
+          # 第三个账号
+          NAVIX_EMAIL3: ${{ secrets.NAVIX_EMAIL3 }}
+          NAVIX_PASSWORD3: ${{ secrets.NAVIX_PASSWORD3 }}
           
           # 【新增】为邮件功能提供 Secrets
           EMAIL_SENDER: ${{ secrets.EMAIL_SENDER }}
