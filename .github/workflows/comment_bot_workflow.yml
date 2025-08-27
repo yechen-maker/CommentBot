@@ -30,9 +30,9 @@ jobs:
 
       - name: Run comment script
         env:
-          # 第一个账号
-          NAVIX_EMAIL: ${{ secrets.NAVIX_EMAIL }}
-          NAVIX_PASSWORD: ${{ secrets.NAVIX_PASSWORD }}
+          # # 第一个账号
+          # NAVIX_EMAIL: ${{ secrets.NAVIX_EMAIL }}
+          # NAVIX_PASSWORD: ${{ secrets.NAVIX_PASSWORD }}
           
           # # 第二个账号 (如果需要启用，请取消下面的注释)
           # NAVIX_EMAIL2: ${{ secrets.NAVIX_EMAIL2 }}
