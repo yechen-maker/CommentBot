@@ -19,7 +19,7 @@ base_email = os.environ.get("NAVIX_EMAIL")
 base_password = os.environ.get("NAVIX_PASSWORD")
 if base_email and base_password:
     ACCOUNTS.append({"email": base_email, "password": base_password})
-i = 3
+i = 2
 while True:
     email = os.environ.get(f"NAVIX_EMAIL{i}")
     password = os.environ.get(f"NAVIX_PASSWORD{i}")
